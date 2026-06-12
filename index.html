@@ -1,278 +1,241 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>39 Mountains — Support</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="media/appicon.png" />
+    <title>39 Mountains</title>
+    <meta name="description" content="Log your summits across Bulgaria's 39 official mountain peaks. Track your progress, relive your climbs, and chase the complete collection." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/iconify/3.1.1/iconify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
 
-    :root {
-      --forest:   #1B4332;
-      --moss:     #2D6A4F;
-      --sage:     #74C69D;
-      --cream:    #F5F0E8;
-      --stone:    #C9C0AD;
-      --ink:      #1A1A18;
-      --mist:     rgba(255,255,255,0.06);
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background-color: var(--forest);
-      color: var(--cream);
-      font-family: 'Inter', system-ui, sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* ── Texture overlay ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.5;
-    }
-
-    /* ── Mountains SVG header illustration ── */
-    .hero {
-      position: relative;
-      width: 100%;
-      padding: 80px 24px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      z-index: 1;
-    }
-
-    .peaks {
-      width: 100%;
-      max-width: 680px;
-      opacity: 0;
-      transform: translateY(16px);
-      animation: rise 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
-    }
-
-    .title {
-      font-size: clamp(52px, 10vw, 88px);
-      font-weight: 700;
-      line-height: 0.95;
-      letter-spacing: -0.03em;
-      text-align: center;
-      color: var(--cream);
-      opacity: 0;
-      animation: rise 1s ease 0.6s forwards;
-    }
-
-    .title em {
-      font-style: normal;
-      color: var(--sage);
-    }
-
-    .subtitle {
-      margin-top: 20px;
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--stone);
-      text-align: center;
-      max-width: 420px;
-      line-height: 1.6;
-      opacity: 0;
-      animation: rise 0.9s ease 0.8s forwards;
-    }
-
-    /* ── Content ── */
-    .content {
-      position: relative;
-      z-index: 1;
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 0 24px 100px;
-    }
-
-    .section {
-      margin-bottom: 56px;
-      opacity: 0;
-      animation: rise 0.9s ease forwards;
-    }
-    .section:nth-child(1) { animation-delay: 1.1s; }
-    .section:nth-child(2) { animation-delay: 1.25s; }
-    .section:nth-child(3) { animation-delay: 1.4s; }
-
-    .section-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--sage);
-      margin-bottom: 20px;
-    }
-
-    h2 {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 14px;
-      color: var(--cream);
-    }
-
-    p {
-      font-size: 16px;
-      line-height: 1.75;
-      color: var(--stone);
-      font-weight: 500;
-    }
-
-    /* ── FAQ ── */
-    .faq-item {
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding: 20px 0;
-    }
-    .faq-item:last-child { border-bottom: 1px solid rgba(255,255,255,0.08); }
-
-    .faq-q {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--cream);
-      margin-bottom: 8px;
-    }
-
-    .faq-a {
-      font-size: 15px;
-      line-height: 1.7;
-      color: var(--stone);
-      font-weight: 500;
-    }
-
-    /* ── Contact card ── */
-    .contact-card {
-      background: var(--mist);
-      border: 1px solid rgba(116, 198, 157, 0.2);
-      border-radius: 4px;
-      padding: 32px 36px;
-      margin-top: 8px;
-    }
-
-    .contact-card p {
-      margin-bottom: 20px;
-    }
-
-    .email-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-family: 'DM Mono', monospace;
-      font-size: 14px;
-      font-weight: 400;
-      color: var(--sage);
-      text-decoration: none;
-      letter-spacing: 0.04em;
-      border-bottom: 1px solid rgba(116, 198, 157, 0.3);
-      padding-bottom: 2px;
-      transition: color 0.2s, border-color 0.2s;
-    }
-
-    .email-link:hover {
-      color: var(--cream);
-      border-color: var(--cream);
-    }
-
-    /* ── Footer ── */
-    footer {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      padding: 32px 24px 48px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-    }
-
-    footer p {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      color: rgba(201, 192, 173, 0.4);
-      font-weight: 300;
-    }
-
-    /* ── Animation ── */
-    @keyframes rise {
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="hero">
-    <!-- Mountain illustration -->
-    <svg class="peaks" viewBox="0 0 680 180" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <!-- back range -->
-      <polygon points="0,180 90,60 180,130 260,40 340,110 420,50 500,120 590,30 680,100 680,180" fill="#2D6A4F" opacity="0.4"/>
-      <!-- mid range -->
-      <polygon points="0,180 60,100 140,150 220,70 310,130 400,55 480,115 560,75 640,120 680,90 680,180" fill="#1B4332" opacity="0.7"/>
-      <!-- front peaks -->
-      <polygon points="30,180 120,90 210,160 300,60 390,145 480,80 570,140 680,85 680,180" fill="#163829"/>
-      <!-- snow caps -->
-      <polygon points="300,60 315,85 285,85" fill="#F5F0E8" opacity="0.25"/>
-      <polygon points="480,80 493,102 467,102" fill="#F5F0E8" opacity="0.2"/>
-      <polygon points="120,90 132,110 108,110" fill="#F5F0E8" opacity="0.15"/>
-    </svg>
-
-    <h1 class="title"><em>39</em> Mountains</h1>
-    <p class="subtitle">Track your journey across Bulgaria's 39 mountain peaks.</p>
-  </div>
-
-  <div class="content">
-
-    <div class="section">
-      <p class="section-label">About</p>
-      <h2>The App</h2>
-      <p>
-        39 Mountains is an iOS app for hikers who want to track their progress conquering Bulgaria's iconic mountain summits. Log your ascents, earn achievements, explore an interactive map, and share your stats with friends.
-      </p>
+    <!-- NAV -->
+    <nav>
+    <a href="#" style="display: flex; align-items: center;">
+        <img src="media/logo2.png" alt="39 Mountains" height="48" />
+    </a>
+    <div>
+      <button class="lang-toggle" id="langToggle" onclick="toggleLang()">БГ</button>
+      <ul class="nav-links">
+          <li><a href="#features" data-key="navFeatures"></a></li>
+          <li><a href="#peaks" data-key="navPeaks"></a></li>
+          <li><a href="#faq" data-key="navFaq"></a></li>
+          <li><a href="#download" class="nav-cta" data-key="navDownload"></a></li>
+      </ul>
     </div>
+    </nav>
+    
 
-    <div class="section">
-      <p class="section-label">FAQ</p>
-      <div class="faq-item">
-        <p class="faq-q">How do I log a summit?</p>
-        <p class="faq-a">Open the mountain's detail page and tap "Mark as Summited." Your achievement will be saved to your profile and counted toward your progress.</p>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="peaks-ticker">
+        <div class="peaks-ticker-track" id="tickerTrack"></div>
       </div>
-      <div class="faq-item">
-        <p class="faq-q">How many mountains are there in Bulgaria?</p>
-        <p class="faq-a">By official records Bulgaria has 39 mountains.</p>
-      </div>
-      <div class="faq-item">
-        <p class="faq-q">Is my data private?</p>
-        <p class="faq-a">Your summit log and profile information are private by default. We do not sell or share your personal data with third parties.</p>
-      </div>
-    </div>
+    <svg class="hero-bg-rings" viewBox="0 0 1200 800" 
+     preserveAspectRatio="xMidYMax slice" 
+     aria-hidden="true">
+  <!-- back range - faintest -->
+  <path d="M-100 800 L0 480 L80 520 L180 380 L280 440 L380 300 L480 360 L560 260 L640 320 L720 240 L820 300 L900 200 L980 270 L1060 180 L1140 250 L1200 210 L1200 800 Z"
+        fill="rgba(74, 124, 89, 0.06)" />
 
-    <div class="section">
-      <p class="section-label">Contact</p>
-      <div class="contact-card">
-        <p>For support, questions, or feedback, reach out and we'll get back to you as soon as possible.</p>
-        <a class="email-link" href="mailto:support@39mountains.quest">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="3" width="12" height="8.5" rx="1.2" stroke="currentColor" stroke-width="1.1"/>
-            <path d="M1.5 3.5L7 8L12.5 3.5" stroke="currentColor" stroke-width="1.1"/>
-          </svg>
-          support@39mountains.quest
+  <!-- mid range -->
+  <path d="M-100 800 L0 580 L100 540 L200 480 L300 520 L400 420 L500 460 L580 360 L660 400 L760 340 L860 390 L940 300 L1020 350 L1100 290 L1200 330 L1200 800 Z"
+        fill="rgba(74, 124, 89, 0.08)" />
+
+  <!-- front range - most visible -->
+  <path d="M-100 800 L0 680 L120 640 L220 600 L320 640 L420 560 L520 600 L600 520 L680 560 L780 500 L880 550 L960 480 L1040 520 L1120 470 L1200 500 L1200 800 Z"
+        fill="rgba(74, 124, 89, 0.11)" />
+
+  <!-- foreground ridge - strongest -->
+  <path d="M-100 800 L0 750 L150 700 L280 720 L400 680 L500 700 L600 660 L700 690 L800 650 L920 670 L1040 630 L1200 650 L1200 800 Z"
+        fill="rgba(74, 124, 89, 0.14)" />
+</svg>
+
+    <div class="hero-content reveal">
+        <p class="hero-eyebrow" data-key="heroEyebrow"></p>
+        <h1 class="hero-title" data-key="heroTitle"></h1>
+        <p class="hero-sub" data-key="heroSub"></p>
+        <div class="hero-cta-group">
+        <a href="#download" class="btn-primary" id="app-store-link">
+          <span class="iconify" data-icon="mdi:apple" style="font-size: 20px;"></span>
+          <span data-key="heroCta"></span>
         </a>
-      </div>
+        <button class="btn-primary btn-soon" disabled>
+          <span class="iconify" data-icon="mdi:android" style="font-size: 20px;"></span>
+          <span data-key="heroAndroid"></span>
+        </button>
+        <a href="#peaks" class="btn-ghost" data-key="heroExplore"></a>
+        </div>
     </div>
 
-  </div>
+    <div class="hero-scroll">
+        <div class="hero-scroll-line"></div>
+        <span data-key="heroScroll"></span>
+    </div>
+    </section>
 
-  <footer>
-    <p>© 2026 39 Mountains &nbsp;·&nbsp; All rights reserved</p>
-  </footer>
+    <!-- FEATURES -->
+    <section class="section" id="features">
+    <div class="section-inner">
+        <p class="section-label reveal" data-key="featuresLabel"></p>
+        <h2 class="section-title reveal" data-key="featuresTitle"></h2>
 
-</body>
+        <div class="features-grid">
+
+        <div class="feature-card reveal">
+            <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <h3 data-key="feature1Title"></h3>
+            <p data-key="feature1Text"></p>
+        </div>
+
+        <div class="feature-card reveal">
+            <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h3 data-key="feature2Title"></h3>
+            <p data-key="feature2Text"></p>
+        </div>
+
+        <div class="feature-card reveal">
+            <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <h3 data-key="feature3Title"></h3>
+            <p data-key="feature3Text"></p>
+        </div>
+
+        </div>
+    </div>
+    </section>
+
+    <!-- SCREENSHOTS -->
+    <section class="screenshots-section" id="screenshots">
+    <div class="section-inner">
+        <p class="section-label reveal" data-key="screenshotsLabel"></p>
+        <h2 class="section-title reveal" data-key="screenshotsTitle"></h2>
+    </div>
+
+    <div class="screenshots-track" id="screenshotsTrack">
+
+        <div class="screenshot-frame">
+          <img src="media/screen1.webp" alt="Dashboard screen" style="width:100%; height:100%; object-fit:cover; object-position: top;" />
+          <div class="screenshot-label" data-key="screenshotDashboard"></div>
+        </div>
+        <div class="screenshot-frame">
+          <img src="media/screen2.webp" alt="Dashboard screen" style="width:100%; height:100%; object-fit:cover; object-position: top;" />
+          <div class="screenshot-label" data-key="screenshotPeaks"></div>
+        </div>
+        <div class="screenshot-frame">
+          <img src="media/screen3.webp" alt="Dashboard screen" style="width:100%; height:100%; object-fit:cover; object-position: top;" />
+          <div class="screenshot-label" data-key="screenshotMap"></div>
+        </div>
+        <div class="screenshot-frame">
+          <img src="media/screen4.webp" alt="Dashboard screen" style="width:100%; height:100%; object-fit:cover; object-position: top;" />
+          <div class="screenshot-label" data-key="screenshotProfile"></div>
+        </div>
+    </div>
+    </section>
+
+    <!-- PEAKS LIST -->
+    <section class="section peaks-section" id="peaks">
+    <div class="section-inner">
+        <div class="peaks-intro">
+        <div>
+            <p class="section-label reveal" data-key="peaksLabel"></p>
+            <h2 class="section-title reveal" style="margin-bottom: 0;" data-key="peaksTitle"></h2>
+        </div>
+        <div class="peaks-stat reveal">
+            <div class="peaks-stat-number">2925</div>
+            <div class="peaks-stat-label" data-key="peaksStatLabel"></div>
+        </div>
+        </div>
+
+        <div id="peaks-container" class="peaks-grid reveal">
+        </div>
+
+        <p style="font-size: 0.8rem; color: var(--rock); margin-top: 1.25rem; text-align: right;">
+        <span class="peak-difficulty diff-1" style="display:inline-block;"></span><span data-key="diffModerate"></span> &nbsp;
+        <span class="peak-difficulty diff-2" style="display:inline-block;"></span><span data-key="diffChallenging"></span> &nbsp;
+        <span class="peak-difficulty diff-3" style="display:inline-block;"></span><span data-key="diffDemanding"></span>
+        </p>
+    </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section faq-section" id="faq">
+    <div class="section-inner">
+        <p class="section-label reveal" data-key="faqLabel"></p>
+        <h2 class="section-title reveal" data-key="faqTitle"></h2>
+
+        <div class="faq-list reveal">
+
+        <div class="faq-item">
+            <button class="faq-question">
+                <span data-key="faq1Q"></span>
+                <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-answer" data-key="faq1A"></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">
+                <span data-key="faq3Q"></span>
+                <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-answer" data-key="faq3A"></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">
+                <span data-key="faq4Q"></span>
+                <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-answer" data-key="faq4A"></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">
+                <span data-key="faq5Q"></span>
+                <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-answer" data-key="faq5A"></div>
+        </div>
+
+        </div>
+    </div>
+    </section>
+
+    <!-- CTA FOOTER -->
+    <section class="cta-footer" id="download">
+    <p class="section-label" data-key="ctaLabel"></p>
+    <h2 data-key="ctaTitle"></h2>
+    <p data-key="ctaSub"></p>
+    <div class="hero-cta-group">
+        <a href="https://apps.apple.com/bg/app/39-mountains/id6774664083" class="btn-primary" id="app-store-link">
+          <span class="iconify" data-icon="mdi:apple" style="font-size: 20px;"></span>
+          <span data-key="heroCta"></span>
+        </a>
+        <button class="btn-primary btn-soon" disabled>
+          <span class="iconify" data-icon="mdi:android" style="font-size: 20px;"></span>
+          <span data-key="heroAndroid"></span>
+        </button>
+    </div>
+    <div class="footer-links">
+        <a href="https://docs.google.com/document/d/1o0_IEDqUh6XP5tS_LcPOWn713-qWYF818VTPr0v_C6s" data-key="footerPrivacy"></a>
+        <!-- <a href="/support" data-key="footerSupport"></a> -->
+        <a href="mailto:support@39mountains.quest" data-key="footerContact"></a>
+        <span style="color: rgba(232,224,208,0.2);" data-key="footerCopy"></span>
+    </div>
+    </section>
+    <script src="translation.js"></script>
+    <script src="script.js"></script>
+  </body>
 </html>
